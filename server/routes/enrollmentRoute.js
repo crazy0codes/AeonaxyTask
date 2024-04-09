@@ -2,7 +2,14 @@ const express = require('express')
 const { sql } = require('../config/db');
 const router = express.Router()
 
-router.get("/enroll/:username/:course_id", async function(req, res) {
+router.get("/enroll/:username/:course_id", verifyUser, enroll);
+router.get("/courses_enrolled/:username", verifyUser, getEnrolledCourses)
+
+async function verifyUser(req, res, next){
+    next()
+}
+
+async function enroll (req, res) {
     const { username, course_id } = req.params;
     try {
         await sql`INSERT INTO enrolled (username, course_id) VALUES (${username}, ${course_id})`;
@@ -19,9 +26,9 @@ router.get("/enroll/:username/:course_id", async function(req, res) {
                .json({ error: "Internal Server Error" });
         }
     }
-});
+}
 
-router.get("/courses_enrolled/:username", async function(req,res){
+async function getEnrolledCourses(req,res){
     const {username} = req.params
     try {
         const userCourses = await sql `SELECT * FROM ENROLLED WHERE USERNAME = ${username}`
@@ -31,6 +38,6 @@ router.get("/courses_enrolled/:username", async function(req,res){
         res.status(500)
            .json(err)
     }
-})
+}
 
 module.exports = router
