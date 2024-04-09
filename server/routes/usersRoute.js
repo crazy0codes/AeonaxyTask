@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcrypt');
 router.use(express.json())
 
 const jwt = require('jsonwebtoken')
@@ -11,36 +12,38 @@ router.post('/login', getUser,)
 router.put('/profile/:username', verifyUser, updateProfile)
 
 async function verifyUser(req, res, next) {
-    //user can edit his profile when only he has the authencation Token
-    console.log(req.header)
-    
+    const { username, password } = req.query;
+    next()
 }
-async function updateProfile(req, res){
+
+async function updateProfile(req, res) {
     try {
         const { username } = req.params;
-        const { newUsername } = req.body;
-        const isUniqueUsername = await sql`select username from user where username = ${newUsername}`
-        if (isUniqueUsername.length > 1) {
-            res.status(404)
-                .json({
-                    error: "username is taken"
-                })
+        const { newUsername, token } = req.body;
+        if (jwt.verify(token, process.env.JWT_SECRET_KEY)) {
+            const isUniqueUsername = await sql`select username from user where username = ${newUsername}`
+            if (isUniqueUsername.length > 1) {
+                res.status(404)
+                    .json({
+                        error: "username is taken"
+                    })
+            }
+            else {
+                await sql`update users set username = ${newUsername} where username = ${username}`
+                res.status(200)
+                    .json({
+                        message: "username is changed successfully"
+                    })
+            }
         }
-        else {
-            await sql`update users set username = ${newUsername} where username = ${username}`
-            res.status(200)
-                .json({
-                    message: "username is changed successfully"
-                })
-        }
-    
+
     } catch (error) {
         res.status(500)
             .json({
                 error: "internal error"
             })
     }
-    
+
 }
 
 async function newUser(req, res) {
@@ -61,21 +64,33 @@ async function newUser(req, res) {
     }
     else {
         res.status(500)
-        .json(isUserAdded)
+            .json(isUserAdded)
     }
 
 }
 
 async function getUser(req, res) {
-    const { username, password, accessToken } = req.body
-    const user = await sql`SELECT * FROM USERS WHERE USERNAME = ${username} AND PSWD = ${password}`;
-    if (user.length > 0) {
-        res.status(200)
-        .json({ message: "user is found" })
-    }
-    else {
-        res.status(404)
-            .json({ message: "user not found" })
+    try {
+        const { username, password } = req.query
+        const user = await sql`SELECT * FROM USERS WHERE USERNAME = ${username} AND PSWD = ${password}`;
+        const [{ pswd }] = user
+        if (user.length > 0 && await bcrypt.compare(password, pswd)) {
+            res.status(200)
+                .json({
+                    message: "user is found",
+                    token: jwt.sign(username, process.env.JWT_SECRET_KEY, { expiresIn: "1h" })
+                })
+        }
+        else {
+            res.status(404)
+                .json({ message: "user not found" })
+        }
+    } catch (error) {
+        res.status(500)
+            .json({
+                message: "internal error",
+                error
+            })
     }
 }
 

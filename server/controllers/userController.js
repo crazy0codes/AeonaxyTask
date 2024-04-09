@@ -9,7 +9,7 @@ async function verifyUser(req,res){
 
 async function addUser({ username, password, email }) {
     try {
-        const isNewUser = await sql`SELECT USERNAME FROM USERS WHERE USERNAME = ${username};`
+        const isNewUser = await sql `SELECT USERNAME FROM USERS WHERE USERNAME = ${username};`
         if (isNewUser.length == 0) {
             const hashedPswd = await bcrypt.hash(password, 10);
             await sql`INSERT INTO USERS(USERNAME,EMAIL,PSWD) VALUES (${username}, ${email}, ${hashedPswd})`
