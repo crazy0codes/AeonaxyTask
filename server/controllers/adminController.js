@@ -45,10 +45,10 @@ async function loginAdmin(req, res) {
 
 async function editCourse(req, res) {
     try {
-        const { courseId, title, description, instructor, duration, price, level } = req.body;
-        if (!courseId) {
+        const { id, title, description, instructor, duration, price, level } = req.body;
+        if (!id || !title || !description || !instructor || !duration || !price || !level) {
             return res.status(400)
-                .json({ message: "Course ID is required" });
+                .json({ message: "All fields are required"});
         }
         const result = await sql`
             UPDATE courses 
@@ -58,9 +58,11 @@ async function editCourse(req, res) {
                 duration = ${duration}, 
                 price = ${price}, 
                 level = ${level} 
-            WHERE id = ${courseId}
+            WHERE id = ${id}
+
+            returning *;
         `;
-        if (result.affectedRows > 0) {
+        if (result.length > 0) {
             return res.status(200).json({ message: "Course updated successfully" });
         } else {
             return res.status(404).json({ message: "Course not found" });
@@ -73,12 +75,15 @@ async function editCourse(req, res) {
 
 async function deleteCourse(req, res) {
     try {
-        const { courseId } = req.body;
-        if (!courseId) {
+        const { id } = req.body;
+        if (!id) {
             return res.status(400).json({ message: "Course ID is required" });
         }
-        const result = await sql`DELETE FROM courses WHERE id = ${courseId}`;
-        if (result.affectedRows > 0) {
+        await sql`DELETE FROM enrolled WHERE course_id = ${id}`;
+
+        const result = await sql`DELETE FROM courses WHERE id = ${id} returning *`;
+
+        if (result.length > 0) {
             return res.status(200).json({ message: "Course deleted successfully" });
         } else {
             return res.status(404).json({ message: "Course not found" });
@@ -88,6 +93,7 @@ async function deleteCourse(req, res) {
         res.status(500).json({ error: "Internal server error" });
     }
 }
+
 
 module.exports = {
     verifyUser,

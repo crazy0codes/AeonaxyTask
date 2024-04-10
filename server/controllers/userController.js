@@ -22,8 +22,33 @@ async function verifyUser(req, res, next) {
     }
 };
 
+
+const checkPasswordStrength = (password) => {
+    const hasLowercase = /[a-z]/.test(password);
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    const minLength = password.length >= 8;
+  
+    if (!hasLowercase || !hasUppercase || !hasNumber || !hasSpecialChar || !minLength) {
+      return 'Password is not strong enough. It should contain at least one lowercase letter, one uppercase letter, one number, one special character, and be at least 8 characters long.';
+    }
+  
+    return null;
+  };
+
 async function addUser({ username, password, email }) {
     try {
+
+        if(!username && !password && !email){
+            return res.status(400).json({ error: "username, password and email are required" })
+        }
+
+        const errorMessage = checkPasswordStrength(password);
+        if (errorMessage) {
+          return res.status(400).json({ error: errorMessage });
+        }
+
         const isNewUser = await sql`SELECT USERNAME FROM USERS WHERE USERNAME = ${username};`
         if (isNewUser.length == 0) {
             const hashedPswd = await bcrypt.hash(password, 10);
@@ -51,6 +76,10 @@ async function addUser({ username, password, email }) {
 async function updateProfile(req, res) {
     try {
         const { newUsername } = req.body;
+        if (!newUsername) {
+            res.status(400)
+                .json({ error: "username is required" })
+        }
         const isUniqueUsername = await sql`select username from user where username = ${newUsername}`
         if (isUniqueUsername.length > 1) {
             res.status(404)
@@ -104,6 +133,10 @@ async function newUser(req, res) {
 async function getUser(req, res) {
     try {
         const { username, password } = req.query
+        if (!username || !password) {
+            res.status(400)
+                .json({ message: "username and password are required" })
+        }
         const user = await sql`SELECT * FROM USERS WHERE USERNAME = ${username}`;
         if (user.length > 0 && await bcrypt.compare(password, user[0].pswd)) {
             res.status(200)
