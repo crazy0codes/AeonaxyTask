@@ -8,6 +8,7 @@ router.get('/page/:id', async function (req, res) {
         res.status(200)
             .json(courses)
     } catch (error) {
+        console.log(error)
         res.status(500)
             .json({ message: "internal error" })
     }
@@ -19,6 +20,7 @@ router.get('/page/:id/:category', async function (req, res) {
         res.status(200)
             .json(courses)
     } catch (error) {
+        console.log(error)
         res.status(500)
             .json({ message: "internal error" })
     }
@@ -30,6 +32,7 @@ router.get('/page/:id/:category/:level', async function (req, res) {
         res.status(200)
             .json(courses)
     } catch (error) {
+        console.log(error)
         res.status(500)
             .json({ message: "internal error" })
     }
@@ -41,6 +44,7 @@ router.get('/page/:id/:level', async function (req, res) {
         res.status(200)
             .json(courses)
     } catch (error) {
+        console.log(error)
         res.status(500)
             .json({ message: "internal error" })
     }
