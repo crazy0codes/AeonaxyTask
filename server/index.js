@@ -1,5 +1,5 @@
 const express = require('express');
-const userRoute = require('./routes/usersRoute')
+const {userRoute} = require('./routes/usersRoute')
 const coursesRoute = require('./routes/coursesRoute')
 const enrollmentRoute = require('./routes/enrollmentRoute')
 const adminRoute = require('./routes/adminRoute')

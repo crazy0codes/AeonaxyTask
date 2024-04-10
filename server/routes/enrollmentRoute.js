@@ -1,13 +1,11 @@
 const express = require('express')
 const { sql } = require('../config/db');
+const { verifyUser } = require('./usersRoute');
 const router = express.Router()
 
 router.get("/enroll/:username/:course_id", verifyUser, enroll);
 router.get("/courses_enrolled/:username", verifyUser, getEnrolledCourses)
 
-async function verifyUser(req, res, next){
-    next()
-}
 
 async function enroll (req, res) {
     const { username, course_id } = req.params;

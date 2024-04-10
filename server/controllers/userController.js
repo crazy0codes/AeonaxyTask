@@ -2,11 +2,6 @@ const sql = require("../config/db")
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken')
 
-
-async function verifyUser(req,res){
-
-}
-
 async function addUser({ username, password, email }) {
     try {
         const isNewUser = await sql `SELECT USERNAME FROM USERS WHERE USERNAME = ${username};`

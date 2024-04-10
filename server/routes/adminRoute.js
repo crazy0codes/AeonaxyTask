@@ -6,54 +6,47 @@ const bcrypt = require('bcrypt');
 router.use(express.json());
 
 
-router.post('/login', verifyUser, loginAdmin);
+router.post('/login', loginAdmin);
 router.put('/courses', verifyUser, editCourse);
 router.delete('/courses', verifyUser, deleteCourse);
 
 async function verifyUser(req, res, next) {
-    const { username, password } = req.body;
-    const token = req.headers.authorization?.split(' ')[1];
-    console.log(token)
+    const token = req.headers.authorization;
+    if (!token) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
     try {
-        const [{ userrole, pswd, }] = await sql`select userrole, pswd from users where username = ${username}`
-        if (userrole == 'admin' && await bcrypt.compare(password, pswd)) {
-            return next()
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        if (decoded.role !== 'admin') {
+            return res.status(403).json({ message: "Forbidden" });
         }
-    } catch (error) {
-        console.log("this is " + error)
-    }
-    if (token == undefined) {
-        res.status(200)
-            .json({
-                message: "Error!Token was not provided."
-            });
-    }
-    const decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    if (decodedToken.role == 'admin') {
         next();
-    } else {
-        res.status(401)
-            .json({
-                error: "only admins"
-            })
+    } catch (error) {
+        console.error("Error:", error);
+        res.status(401).json({ message: "Unauthorized" });
     }
 };
 
 async function loginAdmin(req, res) {
-    const { username } = req.body
     try {
-        const data = {
-            username,
-            role: 'admin'
+        const { username, password } = req.body;
+        if (!username || !password) {
+            return res.status(400).json({ message: "Username and password are required" });
         }
-        res.status(200)
-        res.json({
-            message: "success",
-            token: jwt.sign(data, process.env.JWT_SECRET_KEY, { expiresIn: '10h' })
-        })
+        const user = await sql`SELECT * FROM users WHERE username = ${username} AND userrole = 'admin'`;
+        if (user.length === 0) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        const match = await bcrypt.compare(password, user[0].pswd);
+        if (match) {
+            const token = jwt.sign({ id: user[0], role: user[0].role }, process.env.JWT_SECRET_KEY, { expiresIn: '1d' });
+            return res.status(200).json({ token });
+        } else {
+            return res.status(401).json({ message: "Invalid password" });
+        }
     } catch (error) {
-        res.status(500)
-            .json({ error: "internal error" })
+        console.error("Error:", error);
+        res.status(500).json({ error: "Internal server error" });
     }
 }
 
