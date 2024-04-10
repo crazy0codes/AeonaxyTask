@@ -1,5 +1,5 @@
 const express = require('express');
-const {userRoute} = require('./routes/usersRoute')
+const userRoute = require('./routes/usersRoute')
 const coursesRoute = require('./routes/coursesRoute')
 const enrollmentRoute = require('./routes/enrollmentRoute')
 const adminRoute = require('./routes/adminRoute')
@@ -8,6 +8,7 @@ const app = express();
 const PORT = 4000;
 
 app.use(cors())
+app.use(express.urlencoded({extended: true}));
 app.use('/api/user', userRoute);
 app.use('/api/courses', coursesRoute);
 app.use('/api/enrollments', enrollmentRoute);
