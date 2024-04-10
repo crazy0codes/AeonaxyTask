@@ -3,9 +3,11 @@ const {userRoute} = require('./routes/usersRoute')
 const coursesRoute = require('./routes/coursesRoute')
 const enrollmentRoute = require('./routes/enrollmentRoute')
 const adminRoute = require('./routes/adminRoute')
+const cors = require('cors')
 const app = express();
 const PORT = 4000;
 
+app.use(cors())
 app.use('/api/user', userRoute);
 app.use('/api/courses', coursesRoute);
 app.use('/api/enrollments', enrollmentRoute);
