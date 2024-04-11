@@ -3,7 +3,10 @@ const userRoute = require('./routes/usersRoute')
 const coursesRoute = require('./routes/coursesRoute')
 const enrollmentRoute = require('./routes/enrollmentRoute')
 const adminRoute = require('./routes/adminRoute')
-const cors = require('cors')
+const cors = require('cors');
+const { createUserTable } = require('./models/user');
+const { createCoursesTable } = require('./models/courses');
+const { createEnrolledTable } = require('./models/enrolled');
 const app = express();
 const PORT = 4000;
 
@@ -20,6 +23,13 @@ app.get('/',function(req,res){
     res.send('<h1>Dashboard</h1>')
 })
 
-app.listen(PORT,function(){
+app.listen(PORT,async function(){
+    try {
+        await createUserTable();
+        await createCoursesTable();
+        await createEnrolledTable();
+    } catch (error) {
+        console.error('Error creating tables:', error);
+    }
     console.log("SERVER IS RUNNING ON ", PORT)
 })
