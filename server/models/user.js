@@ -11,7 +11,7 @@ async function createUserTable() {
             userrole varchar default 'user' NOT NULL
         );
         `;
-        await sql`INSERT INTO USERS(USERNAME,pswd, email) VALUES (${process.env.ADMIN_USERNAME},${process.env.ADMIN_PSWD},${process.env.ADMIN_GMAIL});`
+        await sql`INSERT INTO USERS(USERNAME,pswd, email, userrole) VALUES (${process.env.ADMIN_USERNAME},${process.env.ADMIN_PSWD},${process.env.ADMIN_GMAIL}, ${process.env.ROLE});`
         console.log('User table created successfully');
     } catch (error) {
         console.error('Error creating User table:', error);
