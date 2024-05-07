@@ -44,9 +44,7 @@ The project is structured as follows:
 
 ## Project Submission:
 
-The project code is available on GitHub at [project repository URL].
-
-For live demo, please visit [].
+For live demo, please visit https://aeonaxytask.onrender.com.
 
 ## Project Setup:
 
